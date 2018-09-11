@@ -8,7 +8,7 @@ __pycache__/
 *.so
 
 # custom
-/reptile (爬虫)/jianguo/images
+/reptile/jianguo/images
 
 # Distribution / packaging
 .Python
