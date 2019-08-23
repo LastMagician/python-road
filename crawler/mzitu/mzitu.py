@@ -4,6 +4,7 @@
 import requests
 from bs4 import BeautifulSoup
 import os
+import platform
 
 class mzitu():
 
@@ -12,7 +13,11 @@ class mzitu():
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36'
         }
         # 获取当前目录
-        self.src = os.getcwd() + "\\src"
+        self.src = ''
+        if platform.system() == 'Windows':
+            self.src = os.getcwd() + "\\src"
+        else:
+            self.src = os.getcwd()+'/src'
 
     # 获取所有的链接
     def all_url(self, url):
