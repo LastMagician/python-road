@@ -1,5 +1,5 @@
 # This is my python practice project
 
-I am currently learning reptiles.
+I am currently learning crawler.
 
-- python reptiles
+- python crawler
