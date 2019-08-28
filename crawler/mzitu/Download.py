@@ -3,7 +3,7 @@
 # @Time : 2019-08-26 21:47 
 # @Author : LastMagician 
 # @Site :  
-# @File : proxy.py
+# @File : Download.py
 
 import requests
 import re
@@ -39,29 +39,35 @@ class download:
         # print(self.iplist)
 
 
-    def get(self, url, timeout, proxy=None, num_retries=6):
+    def get(self, url, timeout, proxy=None, num_retries=6, referer=None):
         UA = random.choice(self.user_agent_list)
-        headers = {'User-Agent': UA}
+        headers = { 'User-Agent': UA }
+
+        # 绕过反爬虫机制
+        if referer != None:
+            headers['Referer'] = '{}'.format(referer)
 
         if proxy == None:
             try:
-                return requests.get(url, headers=headers, timeout=timeout)
-            except:
+                response = requests.get(url, headers=headers, timeout=timeout)
+                return response
+            except Exception:
                 if num_retries > 0:
                     time.sleep(10)
                     print(u'获取页面出错，10S后将获取倒数第：{}次'.format(num_retries))
-                    return self.get(url, timeout, num_retries-1) #调用自身，并将次数减1
+                    return self.get(url, timeout, num_retries-1, referer=referer) #调用自身，并将次数减1
                 else:
                     print('开始使用代理')
                     time.sleep(10)
                     IP = ''.join(str(random.choice(self.iplist)).strip())
                     proxy = {'http': IP}
-                    return self.get(url, timeout, proxy,)
+                    return self.get(url, timeout, proxy, referer=referer)
         else:
             try:
                 IP = ''.join(str(random.choice(self.iplist)).strip())
                 proxy = {'http': IP} ## 构造一个代理
-                return response.get(url, headers=headers, proxies=proxy, timeout=timeout)
+                response = requests.get(url, headers=headers, proxies=proxy, timeout=timeout)
+                return response
             except:
                 if num_retries > 0:
                     time.sleep(10)
@@ -69,10 +75,9 @@ class download:
                     proxy = {'http': IP}
                     print(u'正在更换代理，10S后将重新获取倒数第{}次'.format(num_retries))
                     print(u'当前代理是：', proxy)
-                    return self.get(url, timeout, proxy, num_retries-1)
+                    return self.get(url, timeout, proxy, num_retries-1, referer=referer)
                 else:
                     print('代理也不好使了~已取消代理')
                     return self.get(url, 3)
 
-Xz = download()
-print(Xz.get('https://www.mzitu.com', 3).text)
+request = download()
