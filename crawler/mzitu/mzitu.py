@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import os
 import platform
 from Download import request
+from pymongo import MongoClient
+import datetime
 
 class mzitu():
 
@@ -20,6 +22,13 @@ class mzitu():
         else:
             self.src = os.getcwd()+'/src'
 
+        client = MongoClient()
+        db = client['meinvxiezhenji']
+        self.meizitu_collection = db['meizitu']
+        self.title = ''
+        self.url = ''
+        self.img_urls = []
+
 
     # 获取所有的链接
     def all_url(self, url):
@@ -31,27 +40,46 @@ class mzitu():
         for a in all_a:
             title = a.get_text()
             print('开始保存: ', title)
+            self.title = title
             path = str(title).replace(":", "")
             self.mkdir(path)
             href = a['href']
-            self.html(href)
+            self.url = href #将页面地址保存到self.url中
+            if self.meizitu_collection.find_one({'主题页面': href}):
+                print(u'这个页面已经爬取过了')
+            else:
+                self.html(href)
 
     def html(self, href):
         # html = self.request(href)
         html = request.get(href, 3)
         max_page = BeautifulSoup(html.text, 'lxml').find('div', 'pagenavi').find_all('span')[-2].get_text().strip()
         # self.update_header(href)
+        page_num = 0
         for page in range(1, int(max_page) + 1):
+            page_num = page_num + 1
             print('正在下载第{}张图片'.format(page))
             page_url = href + '/' + str(page)
-            self.img(page_url, referer=href)
+            self.img(page_url,  max_page, page_num, referer=href)
 
     # 处理套图地址获得图片的页面地址
-    def img(self, page_url, referer):
+    def img(self, page_url, max_page, page_num, referer):
         # img_html = self.request(page_url)
         img_html = request.get(page_url, 3)
         img_url = BeautifulSoup(img_html.text, 'lxml').find('div', attrs={'class': 'main-image'}).find('img')['src']
-        self.download_img(img_url, referer)
+        self.img_urls.append(img_url)
+        if int(max_page) == page_num:
+            self.download_img(img_url, referer)
+            post = {
+                '标题': self.title,
+                '主题页面': self.url,
+                '图片地址': self.img_urls,
+                '获取时间': datetime.datetime.now()
+            }
+            self.meizitu_collection.insert_one(post)
+            print(u'插入数据库成功')
+        else:
+            self.download_img(img_url, referer)
 
     def download_img(self, img_url, referer):
         name = img_url[-9:-4] + '.jpg'
