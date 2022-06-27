@@ -94,7 +94,7 @@ python-dateutil==2.7.3
 pytz==2018.5
 pyzmq==18.0.1
 qtconsole==4.5.1
-reportlab==3.5.12
+reportlab==3.5.55
 requests==2.18.4
 selenium==3.14.0
 Send2Trash==1.5.0
